@@ -17,7 +17,7 @@ module.exports = {
 `
 
 exports['generate - types - 0'] =
-  `export function start(pear: unknown): Promise<{ ipc: import('bare-stow/host').IPC }>
+  `export function start(pear: import('pear-runtime')): Promise<{ ipc: import('bare-stow/host').IPC }>
 `
 
 exports['generate with client - harness - 0'] = `const path = require('path')
@@ -44,7 +44,7 @@ module.exports = {
 `
 
 exports['generate with client - types - 0'] =
-  `export function start(pear: unknown): Promise<{ ipc: import('bare-stow/host').IPC; rpc: import('bare-rpc') }>
+  `export function start(pear: import('pear-runtime')): Promise<{ ipc: import('bare-stow/host').IPC; rpc: import('bare-rpc') }>
 `
 
 /* eslint-enable */
