@@ -26,6 +26,9 @@
     "url": "https://github.com/holepunchto/bare-stow-target-pear-runtime/issues"
   },
   "homepage": "https://github.com/holepunchto/bare-stow-target-pear-runtime#readme",
+  "peerDependencies": {
+    "bare-stow": "^0.1.0"
+  },
   "devDependencies": {
     "brittle": "^4.0.2",
     "lunte": "^1.7.0",
