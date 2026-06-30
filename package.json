@@ -4,10 +4,14 @@
   "description": "Pear Runtime target for bare-stow",
   "exports": {
     "./package": "./package.json",
-    ".": "./index.js"
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
   },
   "files": [
-    "index.js"
+    "index.js",
+    "index.d.ts"
   ],
   "scripts": {
     "format": "prettier --write . && lunte --fix",
