@@ -4,7 +4,6 @@ exports.offload = true
 exports.format = 'bundle'
 exports.encoding = null
 exports.extension = '.bundle'
-exports.module = 'cjs'
 exports.hosts = [
   'darwin-arm64',
   'darwin-x64',
@@ -14,47 +13,47 @@ exports.hosts = [
   'win32-x64'
 ]
 
-exports.generate = function generate(opts) {
-  const { bundleSpecifier, ipc, rpc, client = null } = opts
+exports.languages = {
+  javascript: {
+    options: { module: 'cjs' },
+    generate: javascript
+  }
+}
 
-  const returned = client ? `{ ${ipc}, ${rpc} }` : `{ ${ipc} }`
+function javascript(context) {
+  const { bundle, client } = context
 
   const handle = client
-    ? `{ ${ipc}: import('bare-stow/host').IPC; ${rpc}: ${client.type} }`
-    : `{ ${ipc}: import('bare-stow/host').IPC }`
+    ? `{ ipc: import('bare-stow-host').IPC; rpc: ReturnType<typeof import(${JSON.stringify(client)}).attach> }`
+    : `{ ipc: import('bare-stow-host').IPC }`
 
-  return [
-    {
-      source: `\
-const path = require('path')
-const stow = require('bare-stow/host')
-
-const bundle = path.join(__dirname, ${JSON.stringify(bundleSpecifier)})
+  const source = `\
+const path = require('bare-path')
+const stow = require('bare-stow-host')
+${client ? `const client = require(${JSON.stringify(client)})\n` : ''}
+const bundle = path.join(__dirname, ${JSON.stringify(bundle)})
 
 module.exports = {
   async start(pear) {
-    const ${ipc} = stow.wrap(pear.run(bundle))
-${client ? '\n' + indent(client.source, 4) : ''}
-    await ${ipc}.ready
+    const ipc = stow.wrap(pear.run(bundle))
+${client ? '\n    const rpc = client.attach(ipc)\n' : ''}
+    await ipc.ready
 
-    return ${returned}
+    return ${client ? '{ ipc, rpc }' : '{ ipc }'}
   }
 }
 `
-    },
-    {
-      extension: '.d.ts',
-      source: `\
+
+  const types = `\
 export function start(pear: import('pear-runtime')): Promise<${handle}>
 `
-    }
-  ]
-}
 
-function indent(source, spaces) {
-  const pad = ' '.repeat(spaces)
-  return source
-    .split('\n')
-    .map((line) => (line.length === 0 ? line : pad + line))
-    .join('\n')
+  return {
+    source,
+    types,
+    dependencies: {
+      'bare-path': '^3.0.0',
+      'bare-stow-host': '^0.1.0'
+    }
+  }
 }

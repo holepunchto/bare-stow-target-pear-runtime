@@ -1,9 +1,9 @@
 /* eslint-disable */
 
-exports['generate - harness - 0'] = `const path = require('path')
-const stow = require('bare-stow/host')
+exports['generate - harness - 0'] = `const path = require('bare-path')
+const stow = require('bare-stow-host')
 
-const bundle = path.join(__dirname, "./core.bundle")
+const bundle = path.join(__dirname, "./index.bundle")
 
 module.exports = {
   async start(pear) {
@@ -17,24 +17,20 @@ module.exports = {
 `
 
 exports['generate - types - 0'] =
-  `export function start(pear: import('pear-runtime')): Promise<{ ipc: import('bare-stow/host').IPC }>
+  `export function start(pear: import('pear-runtime')): Promise<{ ipc: import('bare-stow-host').IPC }>
 `
 
-exports['generate with client - harness - 0'] = `const path = require('path')
-const stow = require('bare-stow/host')
+exports['generate with client - harness - 0'] = `const path = require('bare-path')
+const stow = require('bare-stow-host')
+const client = require("./core.client.js")
 
-const bundle = path.join(__dirname, "./core.bundle")
+const bundle = path.join(__dirname, "./index.bundle")
 
 module.exports = {
   async start(pear) {
     const ipc = stow.wrap(pear.run(bundle))
 
-    const RPC = require('bare-rpc')
-
-    const router = new RPC.CommandRouter()
-    const rpc = new RPC(ipc, router)
-
-    rpc.respond = router.respond.bind(router)
+    const rpc = client.attach(ipc)
 
     await ipc.ready
 
@@ -44,7 +40,7 @@ module.exports = {
 `
 
 exports['generate with client - types - 0'] =
-  `export function start(pear: import('pear-runtime')): Promise<{ ipc: import('bare-stow/host').IPC; rpc: import('bare-rpc') }>
+  `export function start(pear: import('pear-runtime')): Promise<{ ipc: import('bare-stow-host').IPC; rpc: ReturnType<typeof import("./core.client.js").attach> }>
 `
 
 /* eslint-enable */
