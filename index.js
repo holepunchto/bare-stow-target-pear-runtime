@@ -34,9 +34,9 @@ ${client ? `const client = require(${JSON.stringify(client)})\n` : ''}
 const bundle = path.join(__dirname, ${JSON.stringify(bundle)})
 
 module.exports = {
-  async start(pear) {
+  async start(pear${client ? ', { handlers = () => {} } = {}' : ''}) {
     const ipc = stow.wrap(pear.run(bundle))
-${client ? '\n    const rpc = client.attach(ipc)\n' : ''}
+${client ? '\n    const rpc = client.attach(ipc, handlers)\n' : ''}
     await ipc.ready
 
     return ${client ? '{ ipc, rpc }' : '{ ipc }'}
@@ -45,7 +45,14 @@ ${client ? '\n    const rpc = client.attach(ipc)\n' : ''}
 `
 
   const types = `\
-export function start(pear: import('pear-runtime')): Promise<${handle}>
+export function start(
+  pear: import('pear-runtime')${
+    client
+      ? `,
+  opts?: { handlers?: import(${JSON.stringify(client)}).Handlers }`
+      : ''
+  }
+): Promise<${handle}>
 `
 
   return {
