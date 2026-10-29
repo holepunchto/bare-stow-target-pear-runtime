@@ -15,7 +15,7 @@ const stow = require('bare-stow')
 const target = require('bare-stow-target-pear-runtime')
 
 const entry = new URL('file:///app/core.js')
-const out = new URL('file:///app/out/index.js')
+const out = new URL('file:///app/core-harness/')
 
 for await (const artifact of stow(entry, target, out)) {
   console.log(artifact.url.href)
@@ -25,8 +25,10 @@ for await (const artifact of stow(entry, target, out)) {
 On the command line, `bare-stow` resolves `--target pear-runtime` to this package:
 
 ```console
-$ bare-stow --target pear-runtime --out ./out/index.js ./core.js
+$ bare-stow --target pear-runtime --out ./core-harness ./core.js
 ```
+
+The harness imports `bare-path` and `bare-stow-host`, which the generated `package.json` declares as dependencies, along with the RPC library when a `client` is requested.
 
 ## License
 
