@@ -28,7 +28,7 @@ On the command line, `bare-stow` resolves `--target pear-runtime` to this packag
 $ bare-stow --target pear-runtime --out ./core-harness ./core.js
 ```
 
-The harness imports `bare-path` and `bare-stow-host`, which the generated `package.json` declares as dependencies, along with the RPC library when a `client` is requested.
+The harness imports `bare-stow-host`, which the generated `package.json` declares as dependencies, along with the RPC library when a `client` is requested.
 
 ## License
 

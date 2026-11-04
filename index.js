@@ -1,4 +1,5 @@
 exports.name = 'pear-runtime'
+exports.isolation = 'process'
 exports.linked = false
 exports.offload = true
 exports.format = 'bundle'
@@ -28,14 +29,17 @@ function javascript(context) {
     : `{ ipc: import('bare-stow-host').IPC }`
 
   const source = `\
-const path = require('bare-path')
 const stow = require('bare-stow-host')
 ${client ? `const client = require(${JSON.stringify(client)})\n` : ''}
-const bundle = path.join(__dirname, ${JSON.stringify(bundle)})
+const bundle = require.resolve(${JSON.stringify(bundle)})
 
 module.exports = {
-  async start(pear${client ? ', { handlers = () => {} } = {}' : ''}) {
-    const ipc = stow.wrap(pear.run(bundle))
+  async start(pear, { timeout, grace${client ? ', handlers = () => {}' : ''} } = {}) {
+    const sidecar = pear.run(bundle, [], { stdio: 'inherit' })
+
+    const ipc = stow.wrap(sidecar, { kill: () => sidecar.kill('SIGKILL'), timeout, grace })
+
+    sidecar.on('exit', (code, signal) => ipc.exited(code, signal))
 ${client ? '\n    const rpc = client.attach(ipc, handlers)\n' : ''}
     await ipc.ready
 
@@ -46,11 +50,9 @@ ${client ? '\n    const rpc = client.attach(ipc, handlers)\n' : ''}
 
   const types = `\
 export function start(
-  pear: import('pear-runtime')${
-    client
-      ? `,
-  opts?: { handlers?: import(${JSON.stringify(client)}).Handlers }`
-      : ''
+  pear: import('pear-runtime'),
+  opts?: Omit<import('bare-stow-host').IPCOptions, 'kill'>${
+    client ? ` & { handlers?: import(${JSON.stringify(client)}).Handlers }` : ''
   }
 ): Promise<${handle}>
 `
@@ -59,8 +61,7 @@ export function start(
     source,
     types,
     dependencies: {
-      'bare-path': '^3.0.0',
-      'bare-stow-host': '^0.1.0'
+      'bare-stow-host': '^0.2.0'
     }
   }
 }
